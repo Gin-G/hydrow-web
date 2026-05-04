@@ -3,7 +3,7 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /build
 
-COPY requirements.txt .
+COPY hydrow/requirements.txt .
 RUN pip install --upgrade pip \
  && pip install --prefix=/install --no-cache-dir -r requirements.txt
 
@@ -20,8 +20,8 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 
 # Copy application code
-COPY wsgi.py .
-COPY app/ ./app/
+COPY hydrow/wsgi.py .
+COPY hydrow/app/ ./app/
 
 # Owned by non-root user
 RUN chown -R hydrow:hydrow /app
