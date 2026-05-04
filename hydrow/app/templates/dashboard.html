@@ -320,12 +320,12 @@ function renderWorkouts(workouts, videos, athletes) {
       : '';
     return `
       <div class="workout-row">
-        ${poster}
-        <div>
+        <div class="workout-header">
           <div class="workout-name">${vid.name || 'Workout'}</div>
           <div class="workout-meta">${fmtDate(w.startTime)}${instructor ? ' · ' + instructor : ''}${vid.locationShortName ? ' · ' + vid.locationShortName : ''}</div>
           <span class="pill ${pillCls}">${pillLabel}</span>
         </div>
+        ${poster}
         <div class="workout-stats">
           <div class="ws"><div class="ws-val">${meters}</div><div class="ws-lbl">meters</div></div>
           <div class="ws"><div class="ws-val">${stats.calories ?? '—'}</div><div class="ws-lbl">cal</div></div>
