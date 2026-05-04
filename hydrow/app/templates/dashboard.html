@@ -327,10 +327,10 @@ function renderWorkouts(workouts, videos, athletes) {
         </div>
         ${poster}
         <div class="workout-stats">
-          <div class="ws"><div class="ws-val">${meters}</div><div class="ws-lbl">meters</div></div>
-          <div class="ws"><div class="ws-val">${stats.calories ?? '—'}</div><div class="ws-lbl">cal</div></div>
-          <div class="ws"><div class="ws-val">${stats.strokesPerMinute ?? '—'}</div><div class="ws-lbl">spm</div></div>
-          <div class="ws"><div class="ws-val">${stats.watts ?? '—'}</div><div class="ws-lbl">watts</div></div>
+          <div class="ws"><div class="ws-val">${meters}</div><div class="ws-lbl">Total meters</div></div>
+          <div class="ws"><div class="ws-val">${stats.calories ?? '—'}</div><div class="ws-lbl">Calories burned</div></div>
+          <div class="ws"><div class="ws-val">${stats.strokesPerMinute ?? '—'}</div><div class="ws-lbl">Avg S/M</div></div>
+          <div class="ws"><div class="ws-val">${stats.watts ?? '—'}</div><div class="ws-lbl">Avg Watts</div></div>
         </div>
       </div>`;
   }).join('');
