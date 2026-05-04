@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hydrow Workout · Leaderboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='hydrow.css') }}">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo" href="/" style="text-decoration: none;">Hydrow</a>
+  <div class="topbar-right">
+    <a href="/" class="logout-btn">← Back</a>
+    <button class="logout-btn" onclick="doLogout()">Sign out</button>
+  </div>
+</div>
+
+<div class="main">
+  <div id="workout-header"><div class="loading">Loading workout…</div></div>
+
+  <p class="section-label">Your placement</p>
+  <div id="placement"><div class="loading">Loading…</div></div>
+
+  <p class="section-label">Leaderboard</p>
+  <div id="leaderboard"><div class="loading">Loading leaderboard…</div></div>
+</div>
+
+<script>
+const API = '/api';
+const WORKOUT_ID = {{ workout_id }};
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function fmtSplit(s) {
+  if (s == null) return '—';
+  const total = Number(s);
+  if (!isFinite(total)) return s;
+  const m = Math.floor(total / 60);
+  const sec = (total - m * 60).toFixed(1).padStart(4, '0');
+  return `${m}:${sec}`;
+}
+
+function fmtElapsed(sec) {
+  if (sec == null) return '—';
+  const s = Math.round(Number(sec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+  return h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}` : `${m}:${String(r).padStart(2,'0')}`;
+}
+
+function ordinalSuffix(n) {
+  const v = n % 100;
+  if (v >= 11 && v <= 13) return 'th';
+  switch (n % 10) { case 1: return 'st'; case 2: return 'nd'; case 3: return 'rd'; default: return 'th'; }
+}
+
+async function doLogout() {
+  await fetch(`${API}/logout`, { method: 'POST' });
+  location.href = '/';
+}
+
+function renderWorkoutHeader(w) {
+  const vid = w.workoutVideo || {};
+  const stroke = vid.instructors?.stroke;
+  const instructor = stroke?.name || '';
+  const meta = [fmtDate(w.startTime), instructor, vid.location].filter(Boolean).join(' · ');
+  const poster = vid.posterUri ? `<img class="workout-poster wo-page-poster" src="${vid.posterUri}" alt="" loading="lazy">` : '';
+  document.getElementById('workout-header').innerHTML = `
+    ${poster}
+    <h1 class="page-title">${vid.name || 'Workout'}</h1>
+    <p class="page-subtitle">${meta}</p>
+  `;
+}
+
+function renderPlacement(envelope, w) {
+  const entries = envelope.entries || [];
+  const me = entries.find(e => e.current);
+  const total = envelope.totalCount;
+  if (!me) {
+    document.getElementById('placement').innerHTML =
+      '<div class="loading">Your row was not in this leaderboard window.</div>';
+    return;
+  }
+  const stats = w.workoutStats || {};
+  document.getElementById('placement').innerHTML = `
+    <div class="placement-card">
+      <div class="placement-rank">
+        <div class="placement-num">${me.ordinal}<span class="placement-sfx">${ordinalSuffix(me.ordinal)}</span></div>
+        <div class="placement-of">of ${total?.toLocaleString() ?? '—'}</div>
+      </div>
+      <div class="placement-stats">
+        <div class="ws"><div class="ws-val">${Math.round(Number(me.meters || stats.meters || 0)).toLocaleString()}</div><div class="ws-lbl">Meters</div></div>
+        <div class="ws"><div class="ws-val">${fmtSplit(me.splitTime)}</div><div class="ws-lbl">Split / 500m</div></div>
+        <div class="ws"><div class="ws-val">${fmtElapsed(me.elapsedTime)}</div><div class="ws-lbl">Time</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLeaderboard(envelope) {
+  const entries = envelope.entries || [];
+  if (!entries.length) {
+    document.getElementById('leaderboard').innerHTML =
+      '<div class="loading">No leaderboard entries.</div>';
+    return;
+  }
+  const rows = entries.map(e => {
+    const tags = [e.tags?.decade, e.tags?.gender].filter(Boolean).join(' · ');
+    const avatar = e.profileImageUrl512 || e.oarImageUrl
+      ? `<img class="lb-avatar" src="${e.profileImageUrl512 || e.oarImageUrl}" alt="" loading="lazy">`
+      : `<div class="lb-avatar lb-avatar-empty"></div>`;
+    return `
+      <div class="lb-row${e.current ? ' lb-row-me' : ''}">
+        <div class="lb-ord">${e.ordinal}</div>
+        ${avatar}
+        <div class="lb-who">
+          <div class="lb-name">${e.screenName || '—'}</div>
+          <div class="lb-meta">${[e.location, tags].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div class="lb-stat"><div class="lb-stat-val">${Math.round(Number(e.meters || 0)).toLocaleString()}</div><div class="lb-stat-lbl">m</div></div>
+        <div class="lb-stat"><div class="lb-stat-val">${fmtSplit(e.splitTime)}</div><div class="lb-stat-lbl">split</div></div>
+      </div>`;
+  }).join('');
+  document.getElementById('leaderboard').innerHTML = `<div class="lb-list">${rows}</div>`;
+}
+
+async function load() {
+  try {
+    const [wResp, lbResp] = await Promise.all([
+      fetch(`${API}/workouts/${WORKOUT_ID}`),
+      fetch(`${API}/workouts/${WORKOUT_ID}/leaderboard`),
+    ]);
+    if (wResp.status === 401) { location.href = '/'; return; }
+
+    const w = await wResp.json();
+    renderWorkoutHeader(w);
+
+    if (!lbResp.ok) {
+      const err = await lbResp.json().catch(() => ({}));
+      document.getElementById('placement').innerHTML = '';
+      document.getElementById('leaderboard').innerHTML =
+        `<div class="error-msg">Could not load leaderboard: ${err.error || lbResp.status}</div>`;
+      return;
+    }
+    const lb = await lbResp.json();
+    renderPlacement(lb, w);
+    renderLeaderboard(lb);
+  } catch (e) {
+    document.getElementById('leaderboard').innerHTML =
+      `<div class="error-msg">Failed to load: ${e.message}</div>`;
+  }
+}
+
+load();
+</script>
+</body>
+</html>

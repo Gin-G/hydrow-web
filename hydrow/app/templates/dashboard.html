@@ -318,8 +318,10 @@ function renderWorkouts(workouts, videos, athletes) {
     const poster = vid.posterUri
       ? `<img class="workout-poster" src="${vid.posterUri}" alt="" loading="lazy">`
       : '';
+    const tag      = vid.hasLeaderboard ? 'a' : 'div';
+    const linkAttr = vid.hasLeaderboard ? ` href="/workout/${w.id}"` : '';
     return `
-      <div class="workout-row">
+      <${tag} class="workout-row${vid.hasLeaderboard ? ' workout-row-link' : ''}"${linkAttr}>
         <div class="workout-header">
           <div class="workout-name">${vid.name || 'Workout'}</div>
           <div class="workout-meta">${fmtDate(w.startTime)}${instructor ? ' · ' + instructor : ''}${vid.locationShortName ? ' · ' + vid.locationShortName : ''}</div>
@@ -332,7 +334,7 @@ function renderWorkouts(workouts, videos, athletes) {
           <div class="ws"><div class="ws-val">${stats.strokesPerMinute ?? '—'}</div><div class="ws-lbl">Avg S/M</div></div>
           <div class="ws"><div class="ws-val">${stats.watts ?? '—'}</div><div class="ws-lbl">Avg Watts</div></div>
         </div>
-      </div>`;
+      </${tag}>`;
   }).join('');
 }
 

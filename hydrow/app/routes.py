@@ -1,7 +1,8 @@
 import time
+import uuid
 
 import requests
-from flask import Blueprint, jsonify, render_template, request, session
+from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 
 main = Blueprint("main", __name__)
 
@@ -85,6 +86,13 @@ def _proxy_get(path: str, params: dict = None):
 @main.route("/")
 def index():
     return render_template("dashboard.html")
+
+
+@main.route("/workout/<int:workout_id>")
+def workout_page(workout_id):
+    if "rower_id" not in session:
+        return redirect(url_for("main.index"))
+    return render_template("workout.html", workout_id=workout_id)
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -171,6 +179,50 @@ def workouts():
             "limit": request.args.get("limit", 20),
         },
     )
+
+
+@main.route("/api/workouts/<int:workout_id>")
+def workout(workout_id):
+    if "rower_id" not in session:
+        return jsonify({"error": "not_logged_in"}), 401
+    return _proxy_get(f"/rower/{session['rower_id']}/workouts/{workout_id}")
+
+
+@main.route("/api/workouts/<int:workout_id>/leaderboard")
+def workout_leaderboard(workout_id):
+    if "rower_id" not in session:
+        return jsonify({"error": "not_logged_in"}), 401
+    headers, err = _get_auth_headers()
+    if err:
+        return jsonify({"error": err}), 401
+
+    try:
+        wresp = requests.get(
+            f"{BASE_V2}/rower/{session['rower_id']}/workouts/{workout_id}",
+            headers=headers,
+            timeout=15,
+        )
+        wresp.raise_for_status()
+        workout_video_id = wresp.json().get("workoutVideoId")
+        if not workout_video_id:
+            return jsonify({"error": "Workout has no associated video"}), 400
+
+        lb_headers = {
+            **headers,
+            "x-hydrow-rower-id": str(session["rower_id"]),
+            "Idempotency-Key": str(uuid.uuid4()),
+        }
+        lresp = requests.get(
+            f"{BASE_V2}/workouts2/lb2/{workout_video_id}/final/{workout_id}",
+            headers=lb_headers,
+            timeout=15,
+        )
+        lresp.raise_for_status()
+        return jsonify(lresp.json())
+    except requests.HTTPError as e:
+        return jsonify({"error": _safe_error(e)}), e.response.status_code
+    except Exception:
+        return jsonify({"error": "Request failed"}), 500
 
 
 @main.route("/api/progress-summary")
