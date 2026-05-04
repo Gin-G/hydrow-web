@@ -109,23 +109,35 @@ function renderLeaderboard(envelope) {
     return;
   }
   const rows = entries.map(e => {
-    const tags = [e.tags?.decade, e.tags?.gender].filter(Boolean).join(' · ');
-    const avatar = e.profileImageUrl512 || e.oarImageUrl
-      ? `<img class="lb-avatar" src="${e.profileImageUrl512 || e.oarImageUrl}" alt="" loading="lazy">`
+    const tagBits = [e.location, e.tags?.decade, e.tags?.gender].filter(Boolean);
+    const avatarSrc = e.profileImageUrl512 || e.oarImageUrl;
+    const avatar = avatarSrc
+      ? `<img class="lb-avatar" src="${avatarSrc}" alt="" loading="lazy">`
       : `<div class="lb-avatar lb-avatar-empty"></div>`;
     return `
-      <div class="lb-row${e.current ? ' lb-row-me' : ''}">
-        <div class="lb-ord">${e.ordinal}</div>
-        ${avatar}
-        <div class="lb-who">
-          <div class="lb-name">${e.screenName || '—'}</div>
-          <div class="lb-meta">${[e.location, tags].filter(Boolean).join(' · ')}</div>
-        </div>
-        <div class="lb-stat"><div class="lb-stat-val">${Math.round(Number(e.meters || 0)).toLocaleString()}</div><div class="lb-stat-lbl">m</div></div>
-        <div class="lb-stat"><div class="lb-stat-val">${fmtSplit(e.splitTime)}</div><div class="lb-stat-lbl">split</div></div>
-      </div>`;
+      <tr class="${e.current ? 'lb-row-me' : ''}">
+        <td class="lb-ord">${e.ordinal}</td>
+        <td class="lb-avatar-cell">${avatar}</td>
+        <td class="lb-name">${e.screenName || '—'}</td>
+        <td class="lb-meta">${tagBits.join(' · ')}</td>
+        <td class="lb-num">${Math.round(Number(e.meters || 0)).toLocaleString()}</td>
+        <td class="lb-num">${fmtSplit(e.splitTime)}</td>
+      </tr>`;
   }).join('');
-  document.getElementById('leaderboard').innerHTML = `<div class="lb-list">${rows}</div>`;
+  document.getElementById('leaderboard').innerHTML = `
+    <table class="lb-table">
+      <thead>
+        <tr>
+          <th class="lb-ord">Place</th>
+          <th></th>
+          <th>Rower</th>
+          <th>Location · Age · Sex</th>
+          <th class="lb-num">Total meters</th>
+          <th class="lb-num">Avg split</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 async function load() {

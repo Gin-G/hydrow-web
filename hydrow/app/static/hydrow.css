@@ -544,84 +544,91 @@ a.workout-row-link:hover {
   flex: 1;
 }
 
-.lb-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.lb-row {
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
   background: var(--surface);
   border: 0.5px solid var(--border);
-  border-radius: 8px;
-  padding: 0.6rem 0.9rem;
-  display: grid;
-  grid-template-columns: 44px 36px 1fr auto auto;
-  align-items: center;
-  gap: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: var(--font-sans);
 }
 
-.lb-row-me {
+.lb-table thead th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hint);
+  font-weight: normal;
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--surface2);
+}
+
+.lb-table tbody td {
+  padding: 0.55rem 0.9rem;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 0.5px solid var(--border);
+  vertical-align: middle;
+}
+
+.lb-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.lb-table tbody tr.lb-row-me td {
   background: var(--accent-light);
-  border-color: var(--accent-dark);
+  color: var(--text);
+}
+
+.lb-table tbody tr.lb-row-me .lb-ord {
+  color: var(--accent);
 }
 
 .lb-ord {
   font-family: var(--font-mono);
-  font-size: 13px;
   color: var(--muted);
+  width: 60px;
   text-align: right;
 }
 
-.lb-row-me .lb-ord {
-  color: var(--accent);
+.lb-avatar-cell {
+  width: 32px;
+  padding-right: 0 !important;
 }
 
 .lb-avatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
   background: var(--surface2);
 }
 
 .lb-avatar-empty {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--surface2);
 }
 
 .lb-name {
-  font-size: 14px;
-  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 .lb-meta {
-  font-size: 11px;
-  color: var(--hint);
-  font-family: var(--font-sans);
-  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
-.lb-stat {
+.lb-num {
   text-align: right;
-  min-width: 60px;
-}
-
-.lb-stat-val {
-  font-size: 14px;
-  color: var(--text);
-}
-
-.lb-stat-lbl {
-  font-size: 9px;
-  color: var(--hint);
-  font-family: var(--font-sans);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
