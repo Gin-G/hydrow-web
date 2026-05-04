@@ -1,0 +1,473 @@
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Variables ───────────────────────────────────────────────────────────── */
+:root {
+  --bg:           #06364a;
+  --surface:      #0a4a63;
+  --surface2:     #0d5470;
+  --border:       rgba(255,255,255,0.08);
+  --border2:      rgba(255,255,255,0.16);
+  --text:         #e8f4f8;
+  --muted:        #7fb8cc;
+  --hint:         #4d8fa6;
+  --accent:       #3dd6a3;
+  --accent-dark:  #1a9e75;
+  --accent-light: rgba(61,214,163,0.12);
+  --coral:        #e07055;
+  --amber:        #d4a03a;
+  --amber-light:  rgba(212,160,58,0.15);
+  --blue-light:   rgba(100,180,220,0.15);
+  --blue-text:    #7ec8e3;
+  --chart-grid:   rgba(255,255,255,0.07);
+  --font-sans:    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif:   'Georgia', 'Times New Roman', serif;
+  --font-mono:    'Courier New', monospace;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-serif);
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════════════════════════════════════ */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border2);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  width: 360px;
+}
+
+.login-logo {
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  margin-bottom: 1.5rem;
+}
+
+.login-heading {
+  font-size: 26px;
+  font-weight: normal;
+  line-height: 1.3;
+  margin-bottom: 0.4rem;
+}
+
+.login-sub {
+  font-size: 14px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  margin-bottom: 2rem;
+}
+
+/* ── Form fields ── */
+.field {
+  margin-bottom: 1rem;
+}
+
+.field label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field input:focus {
+  border-color: var(--accent);
+}
+
+/* ── Login button ── */
+.login-btn {
+  width: 100%;
+  background: var(--accent-dark);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 15px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: opacity 0.15s;
+}
+
+.login-btn:hover {
+  opacity: 0.88;
+}
+
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Login error ── */
+.login-error {
+  margin-top: 1rem;
+  font-size: 13px;
+  color: var(--coral);
+  font-family: var(--font-sans);
+  display: none;
+}
+
+.login-error.visible {
+  display: block;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════════════════════════ */
+#dashboard {
+  display: none;
+}
+
+#dashboard.visible {
+  display: block;
+}
+
+/* ── Top bar ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-logo {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-sans);
+}
+
+.topbar-name {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.logout-btn {
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: 0.5px solid var(--border2);
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: color 0.15s;
+}
+
+.logout-btn:hover {
+  color: var(--text);
+}
+
+/* ── Main content ── */
+.main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: normal;
+  margin-bottom: 0.3rem;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+}
+
+/* ── Section label ── */
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hint);
+  font-family: var(--font-mono);
+  margin: 2rem 0 0.75rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   METRIC CARDS
+══════════════════════════════════════════════════════════════════════════ */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric-card {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.metric-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  margin-bottom: 4px;
+}
+
+.metric-val {
+  font-size: 24px;
+  font-weight: normal;
+  color: var(--text);
+}
+
+.metric-unit {
+  font-size: 14px;
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+.metric-delta {
+  font-size: 11px;
+  font-family: var(--font-sans);
+  margin-top: 3px;
+}
+
+.delta-pos { color: var(--accent); }
+.delta-neg { color: var(--coral); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PERIOD TABS
+══════════════════════════════════════════════════════════════════════════ */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  border: 0.5px solid var(--border2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab.active {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CHARTS
+══════════════════════════════════════════════════════════════════════════ */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.chart-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.chart-title {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  margin-bottom: 1rem;
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   WORKOUT LIST
+══════════════════════════════════════════════════════════════════════════ */
+.workout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workout-row {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.workout-name {
+  font-size: 15px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workout-meta {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  margin-top: 3px;
+}
+
+.workout-stats {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.ws {
+  text-align: right;
+}
+
+.ws-val {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.ws-lbl {
+  font-size: 10px;
+  color: var(--hint);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Pills ── */
+.pill {
+  display: inline-block;
+  font-size: 10px;
+  font-family: var(--font-sans);
+  padding: 2px 7px;
+  border-radius: 99px;
+  margin-top: 5px;
+  letter-spacing: 0.04em;
+}
+
+.pill-breathe  { background: var(--accent-light);  color: var(--accent); }
+.pill-warmup   { background: var(--amber-light);   color: var(--amber); }
+.pill-cooldown { background: var(--blue-light);    color: var(--blue-text); }
+.pill-drive    { background: var(--surface2);      color: var(--muted); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MILESTONES
+══════════════════════════════════════════════════════════════════════════ */
+.milestone-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.milestone-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.ms-title {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.ms-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--border2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+  width: var(--pct, 0%);
+  transition: width 0.5s ease;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UTILITY
+══════════════════════════════════════════════════════════════════════════ */
+.loading {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.error-msg {
+  font-size: 13px;
+  color: var(--coral);
+  font-family: var(--font-sans);
+  padding: 1rem 0;
+}

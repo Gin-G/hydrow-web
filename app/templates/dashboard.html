@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hydrow Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='hydrow.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+<!-- ── Login ──────────────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Hydrow</div>
+    <h1 class="login-heading">Your rowing dashboard</h1>
+    <p class="login-sub">Sign in with your Hydrow account</p>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="login-error" id="login-error" role="alert"></div>
+  </div>
+</div>
+
+<!-- ── Dashboard ──────────────────────────────────────────────────────────── -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-logo">Hydrow</div>
+    <div class="topbar-right">
+      <span class="topbar-name" id="topbar-name"></span>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <p class="page-title" id="dash-title">Welcome back</p>
+    <p class="page-subtitle" id="dash-subtitle">Loading your stats…</p>
+
+    <p class="section-label">Period summary</p>
+    <div class="tabs" id="period-tabs">
+      <button class="tab active" onclick="switchPeriod('last7', this)">Last 7 days</button>
+      <button class="tab" onclick="switchPeriod('last30', this)">Last 30 days</button>
+      <button class="tab" onclick="switchPeriod('year1', this)">This year</button>
+      <button class="tab" onclick="switchPeriod('lifetime', this)">Lifetime</button>
+    </div>
+    <div class="metric-grid" id="period-metrics">
+      <div class="loading">Loading…</div>
+    </div>
+
+    <p class="section-label">Recent activity</p>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Meters per session</div>
+        <div class="chart-wrap">
+          <canvas id="metersChart" role="img" aria-label="Meters rowed per session"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Watts per session</div>
+        <div class="chart-wrap">
+          <canvas id="wattsChart" role="img" aria-label="Watts per session"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-label">Workout history</p>
+    <div class="workout-list" id="workout-list">
+      <div class="loading">Loading…</div>
+    </div>
+
+    <p class="section-label">Milestones</p>
+    <div class="milestone-grid" id="milestones">
+      <div class="loading">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// API paths are relative — works whether hosted at / or any subdomain
+const API = '/api';
+
+let summaryData = null;
+let metersChart = null;
+let wattsChart  = null;
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function fmtTime(sec) {
+  const s = Math.round(Number(sec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function deltaHtml(val) {
+  if (val == null || val === 0) return '';
+  const cls  = val > 0 ? 'delta-pos' : 'delta-neg';
+  const sign = val > 0 ? '+' : '';
+  return `<div class="metric-delta ${cls}">${sign}${Math.round(val).toLocaleString()} vs prev</div>`;
+}
+
+function chartColors() {
+  return {
+    teal:  '#3dd6a3',
+    amber: '#d4a03a',
+    text:  'rgba(255,255,255,0.4)',
+    grid:  'rgba(255,255,255,0.07)',
+  };
+}
+
+function baseChartOptions(c) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: {
+        ticks: { color: c.text, font: { size: 10 }, maxRotation: 40, autoSkip: true },
+        grid: { display: false },
+        border: { display: false },
+      },
+      y: {
+        ticks: { color: c.text, font: { size: 10 } },
+        grid: { color: c.grid },
+        border: { display: false },
+      },
+    },
+  };
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+async function checkSession() {
+  try {
+    const r = await fetch(`${API}/me`);
+    if (r.ok) {
+      const d = await r.json();
+      showDashboard(d.screenName);
+      loadAll();
+    }
+  } catch (_) {}
+}
+
+async function doLogin() {
+  const btn   = document.getElementById('login-btn');
+  const email = document.getElementById('email').value.trim();
+  const pw    = document.getElementById('password').value;
+
+  clearError();
+  if (!email || !pw) { showError('Please enter email and password.'); return; }
+
+  btn.disabled    = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const r = await fetch(`${API}/login`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password: pw }),
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      showError(d.error || 'Login failed');
+      btn.disabled    = false;
+      btn.textContent = 'Sign in';
+      return;
+    }
+    // Clear password from DOM immediately after sending
+    document.getElementById('password').value = '';
+    showDashboard(d.screenName);
+    loadAll();
+  } catch (_) {
+    showError('Could not reach the server. Please try again.');
+    btn.disabled    = false;
+    btn.textContent = 'Sign in';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function clearError() {
+  const el = document.getElementById('login-error');
+  el.textContent = '';
+  el.classList.remove('visible');
+}
+
+function showDashboard(name) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard').classList.add('visible');
+  document.getElementById('topbar-name').textContent  = name;
+  document.getElementById('dash-title').textContent   = `Welcome back, ${name.split(' ')[0]}`;
+}
+
+async function doLogout() {
+  await fetch(`${API}/logout`, { method: 'POST' });
+  location.reload();
+}
+
+// ── Data loading ──────────────────────────────────────────────────────────────
+
+async function loadAll() {
+  await Promise.all([loadSummary(), loadWorkouts()]);
+}
+
+async function loadSummary() {
+  try {
+    const [, sumR] = await Promise.all([
+      fetch(`${API}/summary`),
+      fetch(`${API}/progress-summary`),
+    ]);
+    const sum = await sumR.json();
+
+    summaryData = {};
+    if (sum.workoutSummaries) {
+      sum.workoutSummaries.forEach(p => { summaryData[p.range] = p.stats; });
+    }
+
+    const lifetime = summaryData['lifetime'];
+    if (lifetime) {
+      const days = lifetime.find(s => s.type === 'daysActive')?.value || '?';
+      const km   = Math.round((lifetime.find(s => s.type === 'meters')?.value || 0) / 1000);
+      document.getElementById('dash-subtitle').textContent =
+        `${days} days on the water · ${km.toLocaleString()} km lifetime`;
+    }
+
+    switchPeriod('last7');
+    renderMilestones(sum.milestones || []);
+  } catch (e) {
+    document.getElementById('period-metrics').innerHTML =
+      `<div class="error-msg">Failed to load summary: ${e.message}</div>`;
+  }
+}
+
+function switchPeriod(key, tabEl) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+  if (!summaryData) return;
+
+  const stats  = summaryData[key] || [];
+  const get    = type => stats.find(s => s.type === type);
+  const days   = get('daysActive');
+  const meters = get('meters');
+  const cal    = get('calories');
+  const time   = get('timeWorkedOut');
+
+  document.getElementById('period-metrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Active days</div>
+      <div class="metric-val">${days?.value ?? '—'}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Meters</div>
+      <div class="metric-val">${meters ? Math.round(meters.value / 1000).toLocaleString() : '—'}<span class="metric-unit">km</span></div>
+      ${meters?.delta != null ? deltaHtml(meters.delta) : ''}
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Calories</div>
+      <div class="metric-val">${cal ? Number(cal.value).toLocaleString() : '—'}</div>
+      ${cal?.delta != null ? deltaHtml(cal.delta) : ''}
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Time</div>
+      <div class="metric-val">${time ? fmtTime(time.value) : '—'}</div>
+    </div>
+  `;
+}
+
+async function loadWorkouts() {
+  try {
+    const r        = await fetch(`${API}/workouts?limit=15`);
+    const d        = await r.json();
+    const workouts = d.workouts  || [];
+    const videos   = d.videos   || {};
+    const athletes = d.athletes || {};
+
+    renderCharts(workouts, videos);
+    renderWorkouts(workouts, videos, athletes);
+  } catch (e) {
+    document.getElementById('workout-list').innerHTML =
+      `<div class="error-msg">Failed to load workouts: ${e.message}</div>`;
+  }
+}
+
+function getPillClass(categoryId) {
+  if (categoryId === 12) return ['pill-warmup',   'Warm-up'];
+  if (categoryId === 35) return ['pill-cooldown', 'Cool-down'];
+  if (categoryId === 3)  return ['pill-breathe',  'Breathe'];
+  return ['pill-drive', 'Drive'];
+}
+
+function renderWorkouts(workouts, videos, athletes) {
+  if (!workouts.length) {
+    document.getElementById('workout-list').innerHTML =
+      '<div class="loading">No workouts found.</div>';
+    return;
+  }
+  document.getElementById('workout-list').innerHTML = workouts.slice(0, 10).map(w => {
+    const vid        = videos[w.workoutVideoId] || {};
+    const stats      = w.workoutStats || {};
+    const instructor = vid.instructors?.strokeId
+      ? (athletes[vid.instructors.strokeId]?.name || '') : '';
+    const [pillCls, pillLabel] = getPillClass(vid.categoryId);
+    const meters = stats.meters ? Math.round(Number(stats.meters)).toLocaleString() : '—';
+    return `
+      <div class="workout-row">
+        <div>
+          <div class="workout-name">${vid.name || 'Workout'}</div>
+          <div class="workout-meta">${fmtDate(w.startTime)}${instructor ? ' · ' + instructor : ''}${vid.locationShortName ? ' · ' + vid.locationShortName : ''}</div>
+          <span class="pill ${pillCls}">${pillLabel}</span>
+        </div>
+        <div class="workout-stats">
+          <div class="ws"><div class="ws-val">${meters}</div><div class="ws-lbl">meters</div></div>
+          <div class="ws"><div class="ws-val">${stats.calories ?? '—'}</div><div class="ws-lbl">cal</div></div>
+          <div class="ws"><div class="ws-val">${stats.strokesPerMinute ?? '—'}</div><div class="ws-lbl">spm</div></div>
+          <div class="ws"><div class="ws-val">${stats.watts ?? '—'}</div><div class="ws-lbl">watts</div></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderCharts(workouts, videos) {
+  const recent     = workouts.slice(0, 10).reverse();
+  const c          = chartColors();
+  const labels     = recent.map(w => (videos[w.workoutVideoId]?.name || 'Workout').split(' ').slice(0, 2).join(' '));
+  const metersData = recent.map(w => Math.round(Number(w.workoutStats?.meters || 0)));
+  const wattsData  = recent.map(w => w.workoutStats?.watts || 0);
+
+  if (metersChart) metersChart.destroy();
+  if (wattsChart)  wattsChart.destroy();
+
+  const opts = baseChartOptions(c);
+
+  metersChart = new Chart(document.getElementById('metersChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: metersData, backgroundColor: c.teal, borderRadius: 4 }] },
+    options: {
+      ...opts,
+      plugins: { ...opts.plugins, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toLocaleString() + ' m' } } },
+    },
+  });
+
+  wattsChart = new Chart(document.getElementById('wattsChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: wattsData,
+        borderColor: c.amber,
+        backgroundColor: c.amber + '22',
+        borderWidth: 2,
+        pointRadius: 3,
+        fill: true,
+        tension: 0.3,
+      }],
+    },
+    options: {
+      ...opts,
+      plugins: { ...opts.plugins, tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' W' } } },
+    },
+  });
+}
+
+function renderMilestones(milestones) {
+  if (!milestones.length) {
+    document.getElementById('milestones').innerHTML = '<div class="loading">No milestone data.</div>';
+    return;
+  }
+  document.getElementById('milestones').innerHTML = milestones.map(m => `
+    <div class="milestone-card">
+      <div class="ms-title">${m.title}</div>
+      <div class="ms-sub">${m.subtitle}</div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="--pct: ${Math.min(m.percent, 100)}%"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('email').addEventListener('keydown',    e => { if (e.key === 'Enter') document.getElementById('password').focus(); });
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+checkSession();
+</script>
+</body>
+</html>
