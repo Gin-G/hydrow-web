@@ -315,8 +315,12 @@ function renderWorkouts(workouts, videos, athletes) {
       ? (athletes[vid.instructors.strokeId]?.name || '') : '';
     const [pillCls, pillLabel] = getPillClass(vid.categoryId);
     const meters = stats.meters ? Math.round(Number(stats.meters)).toLocaleString() : '—';
+    const poster = vid.posterUri
+      ? `<img class="workout-poster" src="${vid.posterUri}" alt="" loading="lazy">`
+      : '';
     return `
       <div class="workout-row">
+        ${poster}
         <div>
           <div class="workout-name">${vid.name || 'Workout'}</div>
           <div class="workout-meta">${fmtDate(w.startTime)}${instructor ? ' · ' + instructor : ''}${vid.locationShortName ? ' · ' + vid.locationShortName : ''}</div>

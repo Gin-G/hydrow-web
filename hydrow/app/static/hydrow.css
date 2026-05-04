@@ -351,9 +351,18 @@ body {
   border-radius: 10px;
   padding: 0.85rem 1.1rem;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+}
+
+.workout-poster {
+  width: 96px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .workout-name {
