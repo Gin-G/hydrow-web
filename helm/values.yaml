@@ -1,0 +1,11 @@
+app:
+  name: hydrow-dashboard
+  instances: 1
+  group: hydrow-dashboard
+  fqdn: hydrow.nickknows.net
+  image: docker.io/ncging/hydrow-dashboard:latest
+  port: 8000
+redis:
+  name: hydrow-web-redis
+  image: redis:8.6.2
+  port: 6379

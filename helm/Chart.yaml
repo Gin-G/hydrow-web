@@ -1,0 +1,12 @@
+apiVersion: v2
+name: hydrow-dashboard
+description: A Helm chart for a Hydrow statistics dashboard application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+home: https://github.com/Gin-G/hydrow-web
+sources:
+  - https://github.com/Gin-G/hydrow-web
+maintainers:
+  - name: Gin-G
+    email: NickCo7@gmail.com

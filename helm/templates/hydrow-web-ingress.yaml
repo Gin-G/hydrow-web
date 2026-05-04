@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name:  {{ .Values.app.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app:  {{ .Values.app.name }}
+    group: {{ .Values.app.group }}
+  annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+      cert-manager.io/cluster-issuer: "letsencrypt-cloudflare"
+      external-dns.alpha.kubernetes.io/target: "8.44.158.127"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+      - {{ .Values.app.fqdn }}
+      secretName: {{ .Values.app.name }}-tls
+  rules:
+    - host: {{ .Values.app.fqdn }}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ .Values.app.name }}
+              port:
+                number: {{ .Values.app.port}}
