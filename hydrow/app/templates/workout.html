@@ -30,6 +30,15 @@
 const API = '/api';
 const WORKOUT_ID = {{ workout_id }};
 
+const DEFAULT_AVATAR =
+  'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="16" fill="#0d5470"/>
+      <circle cx="16" cy="13" r="5" fill="#4d8fa6"/>
+      <path d="M6 28c0-5.5 4.5-9 10-9s10 3.5 10 9" fill="#4d8fa6"/>
+    </svg>`
+  );
+
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
@@ -110,10 +119,8 @@ function renderLeaderboard(envelope) {
   }
   const rows = entries.map(e => {
     const tagBits = [e.location, e.tags?.decade, e.tags?.gender].filter(Boolean);
-    const avatarSrc = e.profileImageUrl512 || e.oarImageUrl;
-    const avatar = avatarSrc
-      ? `<img class="lb-avatar" src="${avatarSrc}" alt="" loading="lazy">`
-      : `<div class="lb-avatar lb-avatar-empty"></div>`;
+    const avatarSrc = e.profileImageUrl512 || e.oarImageUrl || DEFAULT_AVATAR;
+    const avatar = `<img class="lb-avatar" src="${avatarSrc}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}'">`;
     return `
       <tr class="${e.current ? 'lb-row-me' : ''}">
         <td class="lb-ord">${e.ordinal}</td>
