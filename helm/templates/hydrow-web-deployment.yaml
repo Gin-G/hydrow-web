@@ -21,3 +21,11 @@ spec:
         image: {{ .Values.app.image }}
         ports:
         - containerPort: {{ .Values.app.port }}
+        env:
+        - name: SECRET_KEY
+          value: IRown0v3r5ecr3t
+        - name: REDIS_HOST
+          value: {{ .Values.redis.name }}
+        - name: REDIS_PORT
+          value: "{{ .Values.redis.port }}"
+        
