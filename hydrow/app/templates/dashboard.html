@@ -10,7 +10,7 @@
 <body>
 
 <!-- ── Login ──────────────────────────────────────────────────────────────── -->
-<div id="login-screen">
+<div id="login-screen"{% if logged_in %} style="display: none"{% endif %}>
   <div class="login-card">
     <div class="login-logo">Hydrow</div>
     <h1 class="login-heading">Your rowing dashboard</h1>
@@ -29,17 +29,17 @@
 </div>
 
 <!-- ── Dashboard ──────────────────────────────────────────────────────────── -->
-<div id="dashboard">
+<div id="dashboard"{% if logged_in %} class="visible"{% endif %}>
   <div class="topbar">
     <div class="topbar-logo">Hydrow</div>
     <div class="topbar-right">
-      <span class="topbar-name" id="topbar-name"></span>
+      <span class="topbar-name" id="topbar-name">{{ screen_name }}</span>
       <button class="logout-btn" onclick="doLogout()">Sign out</button>
     </div>
   </div>
 
   <div class="main">
-    <p class="page-title" id="dash-title">Welcome back</p>
+    <p class="page-title" id="dash-title">{% if screen_name %}Welcome back, {{ screen_name.split(' ')[0] }}{% else %}Welcome back{% endif %}</p>
     <p class="page-subtitle" id="dash-subtitle">Loading your stats…</p>
 
     <p class="section-label">Period summary</p>

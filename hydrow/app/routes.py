@@ -85,7 +85,11 @@ def _proxy_get(path: str, params: dict = None):
 
 @main.route("/")
 def index():
-    return render_template("dashboard.html")
+    return render_template(
+        "dashboard.html",
+        logged_in="rower_id" in session,
+        screen_name=session.get("screen_name", ""),
+    )
 
 
 @main.route("/workout/<int:workout_id>")
