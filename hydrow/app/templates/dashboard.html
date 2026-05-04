@@ -318,14 +318,18 @@ function renderWorkouts(workouts, videos, athletes) {
     const poster = vid.posterUri
       ? `<img class="workout-poster" src="${vid.posterUri}" alt="" loading="lazy">`
       : '';
-    const tag      = vid.hasLeaderboard ? 'a' : 'div';
-    const linkAttr = vid.hasLeaderboard ? ` href="/workout/${w.id}"` : '';
+    const lbLink = vid.hasLeaderboard
+      ? `<a class="workout-lb-link" href="/workout/${w.id}">View leaderboard →</a>`
+      : '';
     return `
-      <${tag} class="workout-row${vid.hasLeaderboard ? ' workout-row-link' : ''}"${linkAttr}>
+      <div class="workout-row">
         <div class="workout-header">
-          <div class="workout-name">${vid.name || 'Workout'}</div>
-          <div class="workout-meta">${fmtDate(w.startTime)}${instructor ? ' · ' + instructor : ''}${vid.locationShortName ? ' · ' + vid.locationShortName : ''}</div>
-          <span class="pill ${pillCls}">${pillLabel}</span>
+          <div class="workout-header-text">
+            <div class="workout-name">${vid.name || 'Workout'}</div>
+            <div class="workout-meta">${fmtDate(w.startTime)}${instructor ? ' · ' + instructor : ''}${vid.locationShortName ? ' · ' + vid.locationShortName : ''}</div>
+            <span class="pill ${pillCls}">${pillLabel}</span>
+          </div>
+          ${lbLink}
         </div>
         ${poster}
         <div class="workout-stats">
@@ -334,7 +338,7 @@ function renderWorkouts(workouts, videos, athletes) {
           <div class="ws"><div class="ws-val">${stats.strokesPerMinute ?? '—'}</div><div class="ws-lbl">Avg S/M</div></div>
           <div class="ws"><div class="ws-val">${stats.watts ?? '—'}</div><div class="ws-lbl">Avg Watts</div></div>
         </div>
-      </${tag}>`;
+      </div>`;
   }).join('');
 }
 

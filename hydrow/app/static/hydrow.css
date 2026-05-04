@@ -483,16 +483,29 @@ body {
 /* ══════════════════════════════════════════════════════════════════════════
    WORKOUT / LEADERBOARD PAGE
 ══════════════════════════════════════════════════════════════════════════ */
-a.workout-row-link {
-  color: inherit;
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s;
+.workout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-a.workout-row-link:hover {
-  border-color: var(--border2);
-  transform: translateY(-1px);
+.workout-header-text {
+  min-width: 0;
+}
+
+.workout-lb-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.workout-lb-link:hover {
+  text-decoration: underline;
 }
 
 .wo-page-poster {
