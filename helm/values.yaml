@@ -3,7 +3,7 @@ app:
   instances: 1
   group: hydrow-dashboard
   fqdn: hydrow.nickknows.net
-  image: docker.io/ncging/hydrow-dashboard:sha-afdc01a
+  image: docker.io/ncging/hydrow-dashboard:sha-5f628be
   port: 8000
 redis:
   name: hydrow-web-redis
