@@ -20,7 +20,7 @@
   <div id="profile-card"><div class="loading">Loading profile…</div></div>
 
   <p class="section-label">Recent activity</p>
-  <div id="rower-feed"><div class="loading">Loading workouts…</div></div>
+  <div id="rower-feed" class="workout-list"><div class="loading">Loading workouts…</div></div>
 </div>
 
 <script>
@@ -69,10 +69,15 @@ function renderProfile(p) {
         <h1 class="profile-name">${p.screenName || SCREEN_NAME}</h1>
         <div class="profile-meta">${bits.join(' · ') || '—'}</div>
         ${p.aboutMe ? `<p class="profile-about">${p.aboutMe}</p>` : ''}
-        ${p.shareUrl ? `<a class="profile-link" href="${p.shareUrl}" target="_blank" rel="noopener">View on members.hydrow.com →</a>` : ''}
       </div>
     </div>
   `;
+}
+
+function posterFromImage(img, w = 1280, h = 720) {
+  if (!img?.imageServerBaseUrl || !img?.bucket || !img?.key) return '';
+  const spec = { bucket: img.bucket, key: img.key, edits: { resize: { width: w, height: h } } };
+  return `${img.imageServerBaseUrl}/${btoa(JSON.stringify(spec))}`;
 }
 
 function renderFeed(items) {
@@ -82,7 +87,7 @@ function renderFeed(items) {
       '<div class="loading">No workouts to show.</div>';
     return;
   }
-  const rows = workouts.map(i => {
+  document.getElementById('rower-feed').innerHTML = workouts.map(i => {
     const v = i.workoutVideo || {};
     const s = i.stats || {};
     const r = s.rowerStats || {};
@@ -90,27 +95,25 @@ function renderFeed(items) {
     const split  = fmtSplit(r.splitTime);
     const instructor = v.athlete?.familiarName || v.athlete?.name || '';
     const meta = [fmtDate(s.startTime), instructor, v.locationShortName].filter(Boolean).join(' · ');
+    const posterUri = posterFromImage(v.image);
+    const poster = posterUri
+      ? `<img class="workout-poster" src="${posterUri}" alt="" loading="lazy">`
+      : '';
     return `
-      <tr>
-        <td>
-          <div class="rf-name">${v.name || 'Workout'}</div>
-          <div class="rf-meta">${meta}</div>
-        </td>
-        <td class="rf-num">${meters}<div class="rf-lbl">m</div></td>
-        <td class="rf-num">${split}<div class="rf-lbl">avg /500m</div></td>
-      </tr>`;
+      <div class="workout-row">
+        <div class="workout-header">
+          <div class="workout-header-text">
+            <div class="workout-name">${v.name || 'Workout'}</div>
+            <div class="workout-meta">${meta}</div>
+          </div>
+        </div>
+        ${poster}
+        <div class="workout-stats">
+          <div class="ws"><div class="ws-val">${meters}</div><div class="ws-lbl">Total meters</div></div>
+          <div class="ws"><div class="ws-val">${split}</div><div class="ws-lbl">Avg /500m split</div></div>
+        </div>
+      </div>`;
   }).join('');
-  document.getElementById('rower-feed').innerHTML = `
-    <table class="rf-table">
-      <thead>
-        <tr>
-          <th>Workout</th>
-          <th class="rf-num">Total meters</th>
-          <th class="rf-num">Avg split</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`;
 }
 
 async function load() {
