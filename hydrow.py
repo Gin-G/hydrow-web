@@ -7,6 +7,8 @@ Usage:
   python hydrow.py progress
   python hydrow.py workout <workoutId>
   python hydrow.py leaderboard <workoutId>
+  python hydrow.py profile <screenName>
+  python hydrow.py members <screenName>
 """
 
 import sys
@@ -131,6 +133,78 @@ def get_leaderboard(workout_id: str):
     return resp.json()
 
 
+def get_public_profile(screen_name: str):
+    token_data = load_token()
+    rower_id = token_data["rowerId"]
+    headers = {
+        **get_auth_headers(),
+        "x-hydrow-rower-id": str(rower_id),
+        "Idempotency-Key": str(uuid.uuid4()),
+    }
+    resp = requests.get(
+        f"{BASE_V2}/community/public_profile/{screen_name}",
+        headers=headers,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def members_search(screen_name: str):
+    token_data = load_token()
+    rower_id = token_data["rowerId"]
+    headers = {
+        **get_auth_headers(),
+        "x-hydrow-rower-id": str(rower_id),
+        "Idempotency-Key": str(uuid.uuid4()),
+    }
+    resp = requests.get(
+        f"{BASE_V2}/members/search",
+        headers=headers,
+        params={"screenName": screen_name},
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def get_community_feed(screen_name: str, limit: int = 20):
+    token_data = load_token()
+    headers = {
+        **get_auth_headers(),
+        "x-hydrow-rower-id": str(token_data["rowerId"]),
+        "Idempotency-Key": str(uuid.uuid4()),
+    }
+    resp = requests.get(
+        f"{BASE_V2}/community/v2/feed",
+        headers=headers,
+        params={"screenName": screen_name, "limit": limit, "offset": 0},
+    )
+    print(f"HTTP {resp.status_code}", file=sys.stderr)
+    try:
+        return resp.json()
+    except Exception:
+        return {"raw": resp.text}
+
+
+def get_other_workouts(other_rower_id: str):
+    """Probe whether the workouts endpoint accepts a non-self id."""
+    token_data = load_token()
+    headers = {
+        **get_auth_headers(),
+        "x-hydrow-rower-id": str(token_data["rowerId"]),
+        "Idempotency-Key": str(uuid.uuid4()),
+    }
+    resp = requests.get(
+        f"{BASE_V2}/rower/{other_rower_id}/workouts",
+        headers=headers,
+        params={"page": 1, "limit": 5},
+    )
+    print(f"HTTP {resp.status_code}", file=sys.stderr)
+    try:
+        return resp.json()
+    except Exception:
+        return {"raw": resp.text}
+
+
 def get_progress():
     token_data = load_token()
     rower_id = token_data["rowerId"]
@@ -208,6 +282,27 @@ def main():
         if len(args) < 2:
             sys.exit("Usage: python hydrow.py leaderboard <workoutId>")
         print_json(get_leaderboard(args[1]))
+
+    elif cmd == "profile":
+        if len(args) < 2:
+            sys.exit("Usage: python hydrow.py profile <screenName>")
+        print_json(get_public_profile(args[1]))
+
+    elif cmd == "members":
+        if len(args) < 2:
+            sys.exit("Usage: python hydrow.py members <screenName>")
+        print_json(members_search(args[1]))
+
+    elif cmd == "other-workouts":
+        if len(args) < 2:
+            sys.exit("Usage: python hydrow.py other-workouts <rowerId-or-externalId>")
+        print_json(get_other_workouts(args[1]))
+
+    elif cmd == "feed":
+        if len(args) < 2:
+            sys.exit("Usage: python hydrow.py feed <screenName> [limit]")
+        lim = int(args[2]) if len(args) > 2 else 20
+        print_json(get_community_feed(args[1], lim))
 
     elif cmd == "progress":
         print_json(get_progress())

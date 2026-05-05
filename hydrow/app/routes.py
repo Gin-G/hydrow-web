@@ -1,4 +1,5 @@
 import time
+import urllib.parse
 import uuid
 
 import requests
@@ -99,6 +100,13 @@ def workout_page(workout_id):
     return render_template("workout.html", workout_id=workout_id)
 
 
+@main.route("/rower/<path:screen_name>")
+def rower_page(screen_name):
+    if "rower_id" not in session:
+        return redirect(url_for("main.index"))
+    return render_template("rower.html", screen_name=screen_name)
+
+
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 @main.route("/api/login", methods=["POST"])
@@ -190,6 +198,54 @@ def workout(workout_id):
     if "rower_id" not in session:
         return jsonify({"error": "not_logged_in"}), 401
     return _proxy_get(f"/rower/{session['rower_id']}/workouts/{workout_id}")
+
+
+@main.route("/api/profile/<path:screen_name>")
+def public_profile(screen_name):
+    if "rower_id" not in session:
+        return jsonify({"error": "not_logged_in"}), 401
+    headers, err = _get_auth_headers()
+    if err:
+        return jsonify({"error": err}), 401
+    encoded = urllib.parse.quote(screen_name, safe="")
+    return _community_get(f"/community/public_profile/{encoded}", headers)
+
+
+@main.route("/api/profile/<path:screen_name>/feed")
+def public_feed(screen_name):
+    if "rower_id" not in session:
+        return jsonify({"error": "not_logged_in"}), 401
+    headers, err = _get_auth_headers()
+    if err:
+        return jsonify({"error": err}), 401
+    return _community_get(
+        "/community/v2/feed",
+        headers,
+        params={
+            "screenName": screen_name,
+            "limit": request.args.get("limit", 25),
+            "offset": request.args.get("offset", 0),
+        },
+    )
+
+
+def _community_get(path, headers, params=None):
+    """Hit a community/* endpoint with the rower-id and idempotency headers it expects."""
+    full_headers = {
+        **headers,
+        "x-hydrow-rower-id": str(session["rower_id"]),
+        "Idempotency-Key": str(uuid.uuid4()),
+    }
+    try:
+        resp = requests.get(
+            f"{BASE_V2}{path}", headers=full_headers, params=params, timeout=15
+        )
+        resp.raise_for_status()
+        return jsonify(resp.json())
+    except requests.HTTPError as e:
+        return jsonify({"error": _safe_error(e)}), e.response.status_code
+    except Exception:
+        return jsonify({"error": "Request failed"}), 500
 
 
 @main.route("/api/workouts/<int:workout_id>/leaderboard")

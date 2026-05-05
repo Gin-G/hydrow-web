@@ -125,7 +125,7 @@ function renderLeaderboard(envelope) {
       <tr class="${e.current ? 'lb-row-me' : ''}">
         <td class="lb-ord">${e.ordinal}</td>
         <td class="lb-avatar-cell">${avatar}</td>
-        <td class="lb-name">${e.screenName || '—'}</td>
+        <td class="lb-name">${e.screenName ? `<a class="lb-name-link" href="/rower/${encodeURIComponent(e.screenName)}">${e.screenName}</a>` : '—'}</td>
         <td class="lb-meta">${tagBits.join(' · ')}</td>
         <td class="lb-num">${Math.round(Number(e.meters || 0)).toLocaleString()}</td>
         <td class="lb-num">${fmtSplit(e.splitTime)}</td>
