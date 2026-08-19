@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- IdeaBRD tile logo for hydrow-web.
+       Palette lifted from hydrow/app/static/hydrow.css: ocean ground from the
+       bg/surface2 vars, oars in accent/accent-dark, water in blue-text. -->
+  <defs>
+    <linearGradient id="ocean" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d5470"/><stop offset="0.55" stop-color="#08415a"/><stop offset="1" stop-color="#052c3c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.26" r="0.66">
+      <stop offset="0" stop-color="#7ec8e3" stop-opacity="0.26"/><stop offset="1" stop-color="#7ec8e3" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mintFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d2fbe9"/><stop offset="0.40" stop-color="#4ce0af"/><stop offset="1" stop-color="#1aa87d"/>
+    </linearGradient>
+    <linearGradient id="mintBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6bcaad"/><stop offset="0.40" stop-color="#249976"/><stop offset="1" stop-color="#0a6349"/>
+    </linearGradient>
+    <filter id="drop" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="b"/>
+      <feOffset in="b" dx="0" dy="8" result="o"/>
+      <feFlood flood-color="#01161f" flood-opacity="0.5" result="c"/>
+      <feComposite in="c" in2="o" operator="in" result="s"/>
+      <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="tile"><rect x="0" y="0" width="512" height="512" rx="96" ry="96"/></clipPath>
+    <g id="oar">
+      <rect x="-19" y="-316" width="38" height="330" rx="19"/>
+      <g transform="rotate(10 0 -292) translate(8 0)">
+        <path d="M-20,-292 C-32,-320 -48,-346 -48,-374 L-48,-430 Q-48,-458 -16,-458 L16,-458 Q48,-458 48,-430 L48,-374 C48,-346 32,-320 20,-292 Z"/>
+        <rect x="-10" y="-446" width="20" height="158" rx="10" fill="#053626" opacity="0.22"/>
+      </g>
+    </g>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="512" height="512" fill="url(#ocean)"/>
+    <rect width="512" height="512" fill="url(#glow)"/>
+    <g fill="none" stroke="#7ec8e3" stroke-linecap="round">
+      <path d="M34,398 C110,380 168,414 246,398 C324,382 386,414 470,396" stroke-width="12" opacity="0.26"/>
+      <path d="M84,450 C150,436 200,464 262,450 C324,436 376,462 434,448" stroke-width="10" opacity="0.17"/>
+    </g>
+    <g transform="translate(256,486) scale(1.06) translate(-256,-486)">
+      <g transform="translate(360,472) scale(-1,1) rotate(30)" fill="url(#mintBack)" filter="url(#drop)"><use href="#oar"/></g>
+      <g transform="translate(152,472) rotate(30)" fill="url(#mintFront)" filter="url(#drop)"><use href="#oar"/></g>
+    </g>
+  </g>
+  <rect x="1.5" y="1.5" width="509" height="509" rx="94.5" ry="94.5" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="3"/>
+</svg>
